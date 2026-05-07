@@ -4,6 +4,17 @@ Bulk create AD users from CSV with dry-run and logging.
 
 CSV columns required: GivenName, Surname, SamAccountName, OU, Password
 Optional: DisplayName, UserPrincipalName, Groups (semicolon-separated), Description
+
+Validate CSV exists and required columns per row: GivenName, Surname, SamAccountName, OU, Password.
+Skip existing SamAccountName to make the script idempotent.
+Build New-ADUser parameters; set ChangePasswordAtLogon = $true and PasswordNeverExpires = $false. Use SecureString for password.
+Support DryRun: if -DryRun is passed, the script prints planned actions and records DryRun results without making changes.
+Create user with New-ADUser, then Enable-ADAccount explicitly.
+Add user to semicolon-separated group list; log group-level errors but continue.
+Collect per-user results and export to results.csv with timestamp, status, and error messages.
+
+Re-run a failing SamAccountName with -Verbose and wrap the New-ADUser call in try/catch 
+to capture $.Exception | Out-String; also check AD replication latency between DCs (repadmin /replsummary) if creations appear inconsistent.
 #>
 
 param(
